@@ -9,7 +9,8 @@ def connect_to_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open_by_key('1BK8XnyGad3h2OiwlX7Fu2CSKYeI_f_Qm4Wxiknm8gL8').sheet1  # İlk sayfaya erişiyoruz
+    # Google Sheets ID'yi buraya ekliyorum
+    sheet = client.open_by_key('1BK8XnyGad3h2OiwlX7Fu2CSKYeI_f_Qm4Wxiknm8gL8').sheet1  
     return sheet
 
 # Eski stok verilerini Google Sheets'ten çekme
@@ -20,11 +21,15 @@ def load_old_stock_data_from_sheets(sheet):
         old_data[row['SPR No']] = row['Stock Status']
     return old_data
 
-# Yeni stok verilerini Google Sheets'e yazma
+# Yeni stok verilerini Google Sheets'e toplu olarak yazma
 def save_new_stock_data_to_sheets(sheet, new_data):
-    for i, (spr_no, stock_status) in enumerate(new_data.items(), start=2):
-        sheet.update_cell(i, 1, spr_no)  # SPR No sütunu
-        sheet.update_cell(i, 2, stock_status)  # Stock Status sütunu
+    # Verileri toplu halde yazmak için bir liste oluşturuyoruz
+    rows = []
+    for spr_no, stock_status in new_data.items():
+        rows.append([spr_no, stock_status])  # Her satırda SPR No ve Stock Status olacak
+
+    # Tüm veriyi toplu olarak güncelle
+    sheet.update(f'A2:B{len(rows) + 1}', rows)
 
 # Microsoft Teams'e mesaj oluşturma
 def send_notification(spr_no, title, stock, emoji, message):
@@ -55,19 +60,29 @@ def check_stock(sheet):
     new_stock_data = {}
     messages = []
 
-    for item in root.findall('item'):
-        spr_no = item.find('sprNo').text
-        stock = item.find('stock').text
-        title = item.find('title').text.replace('IKEA ', '')
+    for spr_no in old_stock_data:
+        item_found = False
+        for item in root.findall('item'):
+            xml_spr_no = item.find('sprNo').text
+            if spr_no == xml_spr_no:
+                item_found = True
+                stock = item.find('stock').text
+                title = item.find('title').text.replace('IKEA ', '')
 
-        new_stock_data[spr_no] = stock
+                new_stock_data[spr_no] = stock
 
-        if spr_no in old_stock_data and old_stock_data[spr_no] != stock:
-            if stock == 'Mevcut':
-                messages.append(send_notification(spr_no, title, stock, '🟢', 'Stoğa geldi'))
-            elif stock == 'Stok Yok':
-                messages.append(send_notification(spr_no, title, stock, '🔴', 'Stoğu bitti'))
+                # Eğer stok durumu değişmişse bildirim hazırlıyoruz
+                if old_stock_data[spr_no] != stock:
+                    if stock == 'Mevcut':
+                        messages.append(send_notification(spr_no, title, stock, '🟢', 'Stoğa geldi'))
+                    elif stock == 'Stok Yok':
+                        messages.append(send_notification(spr_no, title, stock, '🔴', 'Stoğu bitti'))
 
+        # Eğer ürün XML'de bulunamıyorsa ve daha önce mevcutsa "Sitede kapatıldı" bildirimi
+        if not item_found and old_stock_data[spr_no] == 'Mevcut':
+            messages.append(send_notification(spr_no, "Ürün", '⚪', '⚪', 'Sitede kapatıldı'))
+
+    # Yeni stok verilerini Google Sheets'e yaz
     save_new_stock_data_to_sheets(sheet, new_stock_data)
 
     if messages:
