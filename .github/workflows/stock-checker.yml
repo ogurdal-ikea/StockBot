@@ -1,9 +1,9 @@
 name: Stock Checker
 
 on:
-  workflow_dispatch:  # Manuel tetikleme için
+  workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'  # Her saat başı çalıştırmak için
+    - cron: '0 * * * *'  # Her saat başı çalışması için
 
 jobs:
   stock-check:
@@ -11,15 +11,22 @@ jobs:
 
     steps:
     - name: Depoyu klonla
-      uses: actions/checkout@v3  # actions/checkout sürümü v3 olarak güncelleniyor
+      uses: actions/checkout@v3
 
     - name: Python kurulumunu yap
-      uses: actions/setup-python@v3  # actions/setup-python sürümü v3 olarak güncelleniyor
+      uses: actions/setup-python@v3
       with:
         python-version: '3.x'
 
     - name: Gerekli kütüphaneleri yükle
-      run: pip install requests
+      run: |
+        pip install gspread google-auth google-auth-oauthlib google-auth-httplib2 requests
+
+    - name: Google Sheets kimlik bilgilerini ayarla
+      env:
+        GOOGLE_SHEETS_CREDS: ${{ secrets.GOOGLE_SHEETS_CREDS }}
+      run: |
+        echo "$GOOGLE_SHEETS_CREDS" > credentials.json
 
     - name: Python scriptini çalıştır
       run: python stock_checker.py
