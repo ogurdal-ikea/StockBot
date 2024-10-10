@@ -11,6 +11,7 @@ webhook_url = 'https://mapaikea.webhook.office.com/webhookb2/2ef0fe0b-c860-49e0-
 def connect_to_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
+    client = gspread.authorize(creds)  # client burada tanımlanıyor
     # Google Sheets ID'yi buraya ekliyorum
     sheet = client.open_by_key('1BK8XnyGad3h2OiwlX7Fu2CSKYeI_f_Qm4Wxiknm8gL8').sheet1  
     return sheet
