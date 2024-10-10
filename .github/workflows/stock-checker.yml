@@ -1,7 +1,7 @@
 name: Stock Checker
 
 on:
-  workflow_dispatch:  # Bu satır manuel tetikleme içindir
+  workflow_dispatch:  # Manuel tetikleme için
   schedule:
     - cron: '0 * * * *'  # Her saat başı çalıştırmak için
 
@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Depoyu klonla
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # actions/checkout sürümü v3 olarak güncelleniyor
 
     - name: Python kurulumunu yap
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3  # actions/setup-python sürümü v3 olarak güncelleniyor
       with:
         python-version: '3.x'
 
