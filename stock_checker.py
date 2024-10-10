@@ -4,11 +4,13 @@ import requests
 import xml.etree.ElementTree as ET
 import json
 
+# Webhook URL'si
+webhook_url = 'https://mapaikea.webhook.office.com/webhookb2/2ef0fe0b-c860-49e0-815b-926cf6094a49@d528e232-ef97-4deb-8d8e-c1761bd80396/IncomingWebhook/d6f0c96af01047fdb37e61751b61c692/091d033f-f752-4723-99a6-8a4e4ed8b4a1/V2xjLyMIaDtLEcXqd6HM9CUE2QB3i5faxO7EZCKqeOXzo1'
+
 # Google Sheets'e bağlanmak için kimlik bilgileri
 def connect_to_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
-    client = gspread.authorize(creds)
     # Google Sheets ID'yi buraya ekliyorum
     sheet = client.open_by_key('1BK8XnyGad3h2OiwlX7Fu2CSKYeI_f_Qm4Wxiknm8gL8').sheet1  
     return sheet
@@ -93,7 +95,6 @@ def send_combined_message(messages):
     combined_message = '  \n'.join(messages)
     message_data = {"text": combined_message}
 
-    webhook_url = 'https://mapaikea.webhook.office.com/...'
     response = requests.post(webhook_url, data=json.dumps(message_data), headers={'Content-Type': 'application/json'})
 
     if response.status_code == 200:
