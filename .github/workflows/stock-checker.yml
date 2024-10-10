@@ -1,0 +1,24 @@
+name: Stock Checker
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Her saat başı çalıştırmak için
+
+jobs:
+  stock-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Depoyu klonla
+      uses: actions/checkout@v2
+
+    - name: Python kurulumunu yap
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Gerekli kütüphaneleri yükle
+      run: pip install requests
+
+    - name: Python scriptini çalıştır
+      run: python stock_checker.py
