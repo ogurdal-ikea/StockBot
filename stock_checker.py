@@ -9,7 +9,7 @@ def connect_to_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_file('credentials.json', scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open_by_key('your-google-sheets-id').sheet1  # İlk sayfaya erişiyoruz
+    sheet = client.open_by_key('1BK8XnyGad3h2OiwlX7Fu2CSKYeI_f_Qm4Wxiknm8gL8').sheet1  # İlk sayfaya erişiyoruz
     return sheet
 
 # Eski stok verilerini Google Sheets'ten çekme
